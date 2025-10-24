@@ -2284,7 +2284,7 @@ function createAdminCharts(filteredOrders, period) {
     const salesCtx = document.getElementById('adminSalesChart');
     if (salesCtx) {
         if (adminCharts.sales) adminCharts.sales.destroy();
-        adminCharts.sales = new Chart(salesCtx, {
+    adminCharts.sales = new Chart(salesCtx, {
             type: 'line',
             data: {
                 labels: salesData.labels,
@@ -2300,11 +2300,12 @@ function createAdminCharts(filteredOrders, period) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: true }
-                },
+        plugins: {
+          legend: { display: true, position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+        },
                 scales: {
-                    y: { beginAtZero: true }
+          y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+          x: { ticks: { font: { size: 10 } } }
                 }
             }
         });
@@ -2317,7 +2318,7 @@ function createAdminCharts(filteredOrders, period) {
     const orderTypeCtx = document.getElementById('adminOrderTypeChart');
     if (orderTypeCtx) {
         if (adminCharts.orderType) adminCharts.orderType.destroy();
-        adminCharts.orderType = new Chart(orderTypeCtx, {
+    adminCharts.orderType = new Chart(orderTypeCtx, {
             type: 'doughnut',
             data: {
                 labels: ['ทานที่ร้าน', 'สั่งกลับบ้าน'],
@@ -2328,7 +2329,9 @@ function createAdminCharts(filteredOrders, period) {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false
+        maintainAspectRatio: false,
+        cutout: '60%',
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
             }
         });
     }
