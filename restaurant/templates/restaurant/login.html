@@ -39,7 +39,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">บัญชีผู้ใช้</label>
-            <input type="text" id="loginEmail" name="loginEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="อีเมลหรือเบอร์โทร" />
+            <input type="text" id="loginEmail" name="loginEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="อีเมลหรือชื่อผู้ใช้" />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">รหัสผ่าน</label>
@@ -53,41 +53,15 @@
           {% if login_error %}
           <p class="text-sm text-red-600">{{ login_error }}</p>
           {% endif %}
-          <!-- Primary login button: gradient ตามภาพตัวอย่าง -->
+          <!-- Primary login button: gradient ตามดีไซน์ -->
           <button type="submit" class="w-full py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600">เข้าสู่ระบบ</button>
-
-          <!-- Sign in with providers -->
-          <div class="pt-2">
-            <div class="text-sm text-gray-500 mb-2">เข้าสู่ระบบด้วยบัญชีอื่น</div>
-            <div class="grid grid-cols-4 gap-3">
-              <button type="button" class="border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"><i class="fa-brands fa-google text-lg"></i></button>
-              <button type="button" class="border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"><i class="fa-brands fa-facebook text-lg"></i></button>
-              <button type="button" class="border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"><i class="fa-brands fa-line text-lg"></i></button>
-              <button type="button" class="border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"><i class="fa-brands fa-apple text-lg"></i></button>
-            </div>
+          <!-- Link to Django Admin -->
+          <div class="pt-2 text-center">
+            <a href="/admin/" class="inline-block text-sm text-gray-600 hover:text-gray-800 underline">ไปที่ Django Admin</a>
           </div>
 
-          <!-- Auto-login checkbox -->
-          <div class="pt-2">
-            <label class="inline-flex items-start gap-2 text-sm text-gray-700">
-              <input type="checkbox" id="autoLogin" class="mt-1" />
-              <span>ล็อกอินอัตโนมัติ (ใช้เฉพาะอุปกรณ์ส่วนตัว)</span>
-            </label>
-          </div>
-
-          <!-- Demo accounts section -->
-          <div class="pt-3">
-            <div class="text-sm font-semibold text-gray-700 mb-2">บัญชีทดสอบ (Demo)</div>
-            <div class="bg-gray-100 rounded-xl p-3">
-              <div class="grid grid-cols-2 gap-2 mb-2">
-                <button type="button" onclick="gotoRole('customer')" class="p-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100">👤 ลูกค้า</button>
-                <button type="button" onclick="gotoRole('staff')" class="p-2 rounded-lg bg-green-50 text-green-700 hover:bg-green-100">🧑‍💼 พนักงาน</button>
-                <button type="button" onclick="gotoRole('chef')" class="p-2 rounded-lg bg-orange-50 text-orange-700 hover:bg-orange-100">👨‍🍳 เชฟ</button>
-                <button type="button" onclick="gotoRole('rider')" class="p-2 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100">🏍️ ไรเดอร์</button>
-              </div>
-              <button type="button" onclick="gotoRole('admin')" class="w-full p-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100">👑 แอดมิน</button>
-            </div>
-          </div>
+          <!-- Removed: third-party login and demo quick-login per requirement -->
+          <!-- Removed: auto-login checkbox (no longer recommended) -->
         </form>
 
         <!-- Register Form -->
@@ -156,11 +130,6 @@
         }
       }
 
-      function gotoRole(role) {
-        // Quick-login as demo user for this role
-        window.location.href = '/login/demo/' + role + '/';
-      }
-
       document.addEventListener('DOMContentLoaded', function() {
         // Preselect role when coming from /login/<role>/
         try {
@@ -188,9 +157,9 @@
           [emailEl, passEl].forEach(el => { if (el) { el.classList.remove('border-red-500'); el.classList.add('border-gray-300'); }});
           if (errorEl) { errorEl.textContent = ''; errorEl.classList.add('hidden'); }
 
-          // Basic validation: require both fields; simple email/phone rule; min password length
-          const isPhone = /^\d{8,15}$/.test(email);
+          // Basic validation: require both fields; allow email or username; min password length
           const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+          const isUsername = /^[A-Za-z0-9_.-]{3,30}$/.test(email);
           if (!email || !pass) {
             if (errorEl) { errorEl.textContent = 'กรุณากรอกบัญชีผู้ใช้และรหัสผ่าน'; errorEl.classList.remove('hidden'); }
             if (!email && emailEl) emailEl.classList.add('border-red-500');
@@ -199,8 +168,8 @@
             e.preventDefault();
             return;
           }
-          if (!(isEmail || isPhone)) {
-            if (errorEl) { errorEl.textContent = 'รูปแบบบัญชีผู้ใช้ไม่ถูกต้อง (ใส่อีเมลหรือเบอร์โทร)'; errorEl.classList.remove('hidden'); }
+          if (!(isEmail || isUsername)) {
+            if (errorEl) { errorEl.textContent = 'รูปแบบบัญชีผู้ใช้ไม่ถูกต้อง (ใส่อีเมลหรือชื่อผู้ใช้)'; errorEl.classList.remove('hidden'); }
             if (emailEl) emailEl.classList.add('border-red-500');
             emailEl?.focus();
             e.preventDefault();

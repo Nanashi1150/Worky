@@ -189,8 +189,9 @@ if (!window.dataSdk) {
 
 // Persistence helpers
 const STORAGE_KEYS = {
-  cart: 'restaurant_cart',
-  favorites: 'restaurant_favorites',
+  // Base prefixes (scoped keys are computed via helpers below)
+  cartPrefix: 'restaurant_cart',
+  favoritesPrefix: 'restaurant_favorites',
   menuItems: 'restaurant_menu_items',
   ingredients: 'restaurant_ingredients',
   sets: 'restaurant_sets',
@@ -202,11 +203,34 @@ const STORAGE_KEYS = {
   orders: 'restaurant_orders',
 };
 
+// Compute per-user storage scope so demo accounts and real accounts do not share carts/favorites
+function getStorageScope() {
+  try {
+    // Prefer server-injected user when available
+    if (window.currentUser && window.currentUser.username) {
+      const u = window.currentUser.username;
+      if (u.startsWith('demo_')) return `demo:${u}`;
+      return `user:${u}`;
+    }
+    // Fallback to locally persisted user info
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.currentUser) || 'null');
+    if (saved && saved.username) {
+      const u = saved.username;
+      if (u.startsWith('demo_')) return `demo:${u}`;
+      return `user:${u}`;
+    }
+  } catch (_) {}
+  return 'guest';
+}
+
+function getCartKey() { return `${STORAGE_KEYS.cartPrefix}:${getStorageScope()}`; }
+function getFavoritesKey() { return `${STORAGE_KEYS.favoritesPrefix}:${getStorageScope()}`; }
+
 function saveCart() {
-  try { localStorage.setItem(STORAGE_KEYS.cart, JSON.stringify(cart)); } catch (_) {}
+  try { localStorage.setItem(getCartKey(), JSON.stringify(cart)); } catch (_) {}
 }
 function saveFavorites() {
-  try { localStorage.setItem(STORAGE_KEYS.favorites, JSON.stringify(favorites)); } catch (_) {}
+  try { localStorage.setItem(getFavoritesKey(), JSON.stringify(favorites)); } catch (_) {}
 }
 function saveUsers() {
   try { localStorage.setItem(STORAGE_KEYS.users, JSON.stringify(users)); } catch (_) {}
@@ -231,11 +255,11 @@ function saveOrders() {
 // Load persisted state from localStorage (cart, favorites, users, currentUser, orders, sets, discounts, vouchers)
 function loadPersistedData() {
   try {
-    const savedCart = JSON.parse(localStorage.getItem(STORAGE_KEYS.cart) || '[]');
+    const savedCart = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
     if (Array.isArray(savedCart)) cart = savedCart;
   } catch (_) {}
   try {
-    const savedFav = JSON.parse(localStorage.getItem(STORAGE_KEYS.favorites) || '[]');
+    const savedFav = JSON.parse(localStorage.getItem(getFavoritesKey()) || '[]');
     if (Array.isArray(savedFav)) favorites = savedFav;
   } catch (_) {}
   try {
