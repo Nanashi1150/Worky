@@ -6,8 +6,23 @@ from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbid
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 from decimal import Decimal
-from .models import Profile, Order, OrderItem, Voucher, Payment, RiderAssignment
+from .models import (
+	Profile,
+	Order,
+	OrderItem,
+	Voucher,
+	Payment,
+	RiderAssignment,
+	MenuCategory,
+	MenuItem,
+	Ingredient,
+	FoodSet,
+	SetItem,
+	Address,
+	InventoryTransaction,
+)
 from django.utils import timezone
+from django.db.models import Count
 
 
 def home(request):
@@ -60,6 +75,8 @@ def login_page(request):
 				profile.save()
 			# Redirect by profile role
 			target_role = profile.role if profile else 'customer'
+			if target_role == 'admin':
+				return redirect('admin_panel')
 			return redirect(f'/{target_role}/')
 		else:
 			return render(request, 'restaurant/login.html', {
@@ -100,6 +117,8 @@ def login_demo(request, role: str):
 		profile.save(update_fields=['role'])
 	# Directly log the user in using the default auth backend
 	login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+	if role == 'admin':
+		return redirect('admin_panel')
 	return redirect(f'/{role}/')
 
 def register(request):
@@ -127,6 +146,8 @@ def register(request):
 		user = User.objects.create_user(username=username, email=email, password=password, first_name=first_name, last_name=last_name)
 		profile = Profile.objects.create(user=user, role=role, phone=phone or None)
 		login(request, user)
+		if profile.role == 'admin':
+			return redirect('admin_panel')
 		return redirect(f'/{profile.role}/')
 	# GET fallback to login page
 	return redirect('login')
@@ -445,3 +466,44 @@ def api_rider_complete(request, order_id: int):
 	order.status = Order.STATUS_COMPLETED
 	order.save(update_fields=['status'])
 	return JsonResponse({'ok': True})
+
+
+@login_required(login_url='/login/')
+@require_GET
+def api_admin_health(request):
+	"""Return high-level data health info for the admin dashboard."""
+	# Only admin role
+	prof = getattr(request.user, 'profile', None)
+	if not prof or prof.role != 'admin':
+		return HttpResponseForbidden('Admin only')
+	# Counts
+	counts = {
+		'users': User.objects.count(),
+		'profiles': Profile.objects.count(),
+		'profiles_by_role': dict(Profile.objects.values('role').annotate(c=Count('id')).values_list('role', 'c')),
+		'categories': MenuCategory.objects.count(),
+		'menu_items': MenuItem.objects.count(),
+		'ingredients': Ingredient.objects.count(),
+		'food_sets': FoodSet.objects.count(),
+		'set_items': SetItem.objects.count(),
+		'vouchers': Voucher.objects.count(),
+		'addresses': Address.objects.count(),
+		'orders': Order.objects.count(),
+		'order_items': OrderItem.objects.count(),
+		'payments': Payment.objects.count(),
+		'rider_assignments': RiderAssignment.objects.count(),
+		'inventory_transactions': InventoryTransaction.objects.count(),
+	}
+	# Simple recommendations when core data are empty
+	warnings = []
+	if counts['categories'] == 0:
+		warnings.append('ยังไม่ได้สร้างหมวดหมู่เมนู (MenuCategory)')
+	if counts['menu_items'] == 0:
+		warnings.append('ยังไม่มีรายการเมนู (MenuItem)')
+	if counts['ingredients'] == 0:
+		warnings.append('ยังไม่มีวัตถุดิบ (Ingredient) สำหรับตัดสต็อก')
+	if counts['vouchers'] == 0:
+		warnings.append('ยังไม่มีคูปองส่วนลด (Voucher)')
+	if counts['orders'] == 0:
+		warnings.append('ยังไม่มีออเดอร์ (Order) ในระบบ')
+	return JsonResponse({'counts': counts, 'warnings': warnings})

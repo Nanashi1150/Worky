@@ -15,7 +15,8 @@ urlpatterns = [
     path('staff/', views.staff, name='staff'),
     path('chef/', views.chef, name='chef'),
     path('rider/', views.rider, name='rider'),
-    path('admin/', views.admin_panel, name='admin'),
+    # Custom admin panel lives at /app-admin/ to avoid clashing with Django Admin (/admin/)
+    path('app-admin/', views.admin_panel, name='admin_panel'),
     # API endpoints
     path('api/orders/', views.api_orders_create, name='api_orders_create'),
     path('api/orders/my', views.api_orders_my, name='api_orders_my'),
@@ -24,4 +25,5 @@ urlpatterns = [
     path('api/rider/jobs/<int:order_id>/accept', views.api_rider_accept, name='api_rider_accept'),
     path('api/rider/jobs/<int:order_id>/picked', views.api_rider_picked, name='api_rider_picked'),
     path('api/rider/jobs/<int:order_id>/complete', views.api_rider_complete, name='api_rider_complete'),
+    path('api/admin/health', views.api_admin_health, name='api_admin_health'),
 ]
