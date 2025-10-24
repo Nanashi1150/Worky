@@ -1,0 +1,1309 @@
+{% extends 'restaurant/base.html' %}
+{% block content %}
+<!-- Notification Container -->
+<div id="notification" class="notification"></div>
+
+<!-- Login/Register Modal -->
+<div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 modal flex items-center justify-center z-50{% if initial_role %} hidden{% endif %}"{% if initial_role %} style="display:none"{% endif %}>
+  <div class="bg-white rounded-2xl p-4 sm:p-6 md:p-8 w-full max-w-2xl mx-4 transform transition-all max-h-[85vh] overflow-y-auto">
+    <div class="mb-6">
+      <div class="flex bg-gray-100 rounded-lg p-1 w-full">
+        <button id="loginTab" class="flex-1 py-2 px-4 rounded-md bg-white shadow-sm text-sm font-medium">เข้าสู่ระบบ</button>
+        <button id="registerTab" class="flex-1 py-2 px-4 rounded-md text-gray-500 text-sm font-medium">สมัครสมาชิก</button>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 gap-4 md:gap-6 items-start">
+      <!-- Login / Register forms -->
+      <div>
+        <!-- Login Form -->
+        <form id="loginForm" class="space-y-3 md:space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">ประเภทบัญชี</label>
+            <select id="loginRole" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="customer">ลูกค้า</option>
+              <option value="staff">พนักงาน</option>
+              <option value="chef">เชฟ</option>
+              <option value="rider">ไรเดอร์</option>
+              <option value="admin">แอดมิน</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">บัญชีผู้ใช้</label>
+            <input type="text" id="loginEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="อีเมลหรือเบอร์โทร" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">รหัสผ่าน</label>
+            <input type="password" id="loginPassword" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="รหัสผ่าน" />
+          </div>
+          <div class="flex items-center justify-between">
+            <a href="#" class="text-sm text-blue-600 hover:underline">ลืมรหัสผ่าน?</a>
+          </div>
+          <button type="submit" class="w-full btn-primary text-white py-2 rounded-lg font-medium">
+            <span id="loginLoading" class="loading hidden"></span>
+            เข้าสู่ระบบ
+          </button>
+          <div class="flex items-center justify-between pt-2">
+            <div class="text-sm text-gray-500">เข้าสู่ระบบด้วยบัญชีอื่น</div>
+          </div>
+          <div class="flex items-center gap-2 md:gap-3">
+            <button type="button" class="flex-1 py-2 border rounded-lg hover:bg-gray-50"><i class="fab fa-google text-[#DB4437]"></i></button>
+            <button type="button" class="flex-1 py-2 border rounded-lg hover:bg-gray-50"><i class="fab fa-facebook text-[#1877F2]"></i></button>
+            <button type="button" class="flex-1 py-2 border rounded-lg hover:bg-gray-50"><i class="fab fa-line text-[#06C755]"></i></button>
+            <button type="button" class="flex-1 py-2 border rounded-lg hover:bg-gray-50"><i class="fab fa-apple text-gray-900"></i></button>
+            <button type="button" class="flex-1 py-2 border rounded-lg hover:bg-gray-50"><i class="fab fa-x-twitter"></i></button>
+          </div>
+          <div class="flex items-center gap-2 md:gap-3 pt-2">
+            <label class="flex items-center gap-2 select-none">
+              <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+              <span class="text-sm text-gray-600">ล็อกอินอัตโนมัติ (ใช้เฉพาะอุปกรณ์ส่วนตัว)</span>
+            </label>
+          </div>
+        </form>
+
+        <!-- Register Form -->
+        <form id="registerForm" class="space-y-3 md:space-y-4 hidden">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อผู้ใช้ (Username)</label>
+            <input type="text" id="registerUsername" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="ชื่อผู้ใช้สำหรับแสดงผล" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อ</label>
+              <input type="text" id="registerFirstName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="ชื่อ" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">นามสกุล</label>
+              <input type="text" id="registerLastName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="นามสกุล" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">อีเมล</label>
+            <input type="email" id="registerEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="example@email.com" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">เบอร์โทร</label>
+            <input type="tel" id="registerPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="08xxxxxxxx" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">รหัสผ่าน</label>
+            <input type="password" id="registerPassword" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">ยืนยันรหัสผ่าน</label>
+            <input type="password" id="registerConfirmPassword" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="ยืนยันรหัสผ่าน" />
+          </div>
+          <button type="submit" class="w-full btn-primary text-white py-2 rounded-lg font-medium">
+            <span id="registerLoading" class="loading hidden"></span>
+            ยืนยันสมัครสมาชิก
+          </button>
+        </form>
+
+        <!-- Demo Accounts: moved under forms -->
+        <div class="mt-4 p-3 bg-gray-50 rounded-lg border">
+          <h3 class="text-sm font-medium text-gray-800 mb-2">บัญชีทดสอบ (Demo)</h3>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <button onclick="quickLogin('customer')" class="p-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">👤 ลูกค้า</button>
+            <button onclick="quickLogin('staff')" class="p-2 bg-green-100 text-green-700 rounded hover:bg-green-200">👨‍💼 พนักงาน</button>
+            <button onclick="quickLogin('chef')" class="p-2 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">👨‍🍳 เชฟ</button>
+            <button onclick="quickLogin('rider')" class="p-2 bg-purple-100 text-purple-700 rounded hover:bg-purple-200">🏍️ ไรเดอร์</button>
+            <button onclick="quickLogin('admin')" class="p-2 bg-red-100 text-red-700 rounded hover:bg-red-200 col-span-2">👑 แอดมิน</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Table Number Modal -->
+<div id="tableNumberModal" class="fixed inset-0 bg-black bg-opacity-50 modal flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-sm mx-4">
+    <h3 class="text-lg font-bold mb-3">กรอกเลขโต๊ะ</h3>
+    <p class="text-sm text-gray-600 mb-3">สำหรับออเดอร์ทานในร้าน กรุณาระบุเลขโต๊ะเพื่อให้พนักงานเสิร์ฟได้ถูกต้อง</p>
+    <input id="tableNumberInput" type="text" class="w-full px-3 py-2 border rounded-lg mb-4" placeholder="เช่น 5 หรือ A12" />
+    <div class="flex gap-2">
+      <button onclick="confirmTableNumber()" class="flex-1 btn-primary text-white py-2 rounded-lg">ยืนยัน</button>
+      <button onclick="closeTableNumberModal()" class="flex-1 bg-gray-200 py-2 rounded-lg">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Main App Container -->
+<div id="app" class="hidden">
+  <!-- Navigation -->
+  <nav class="gradient-bg text-white shadow-lg sticky top-0 z-50 border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="flex justify-between items-center py-4">
+        <div class="flex items-center space-x-4">
+          <h1 class="text-2xl font-bold">🍽️ <span id="navRestaurantName">ร้านอาหารดีลิเชียส</span></h1>
+          <span id="userRole" class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm"></span>
+        </div>
+        <div class="flex items-center space-x-3">
+          <span id="userName" class="font-medium"></span>
+          <button onclick="openProfile()" class="relative w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/40 hover:ring-white transition-shadow" title="โปรไฟล์">
+            <img id="navAvatarImg" class="w-full h-full object-cover" src="" style="display:none" />
+            <div id="navAvatarFallback" class="w-full h-full bg-white bg-opacity-20 flex items-center justify-center font-semibold">👤</div>
+          </button>
+          <button onclick="logout()" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-all">
+            <i class="fas fa-sign-out-alt mr-2"></i>ออกจากระบบ
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Customer Interface -->
+  <div id="customerInterface" class="hidden">
+    <!-- Customer Navigation -->
+    <div class="bg-white shadow-sm border-b">
+      <div class="max-w-7xl mx-auto px-4">
+        <div class="flex space-x-8">
+          <button onclick="showCustomerSection('home')" class="py-4 px-2 border-b-2 border-blue-500 text-blue-600 customer-nav-btn active">
+            <i class="fas fa-home mr-2"></i>หน้าหลัก
+          </button>
+          <button onclick="showCustomerSection('menu')" class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:border-blue-500 customer-nav-btn">
+            <i class="fas fa-utensils mr-2"></i>เมนูอาหาร
+          </button>
+          <button onclick="showCustomerSection('favorites')" class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:border-blue-500 customer-nav-btn">
+            <i class="fas fa-heart mr-2"></i>เมนูโปรด
+          </button>
+          <button onclick="showCustomerSection('orders')" class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:border-blue-500 customer-nav-btn">
+            <i class="fas fa-receipt mr-2"></i>ออเดอร์ของฉัน
+          </button>
+          <button onclick="showCustomerSection('cart')" class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:border-blue-500 customer-nav-btn relative">
+            <span class="relative inline-flex items-center">
+              <i class="fas fa-shopping-cart mr-2"></i>
+              <span id="cartCount" class="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white text-[11px] rounded-full h-5 w-5 flex items-center justify-center shadow-sm ring-2 ring-white hidden">0</span>
+            </span>
+            ตะกร้า
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer Home -->
+    <div id="customerHome" class="customer-section">
+      <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Hero Section (OnStove-inspired) -->
+        <section class="rounded-2xl border bg-gray-50 p-6 md:p-10 mb-10">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <!-- Left copy -->
+            <div>
+              <div class="inline-flex items-center px-3 py-1 rounded-full bg-white border text-gray-700 text-xs mb-4">
+                อร่อย • ส่งไว • ปลอดภัย
+              </div>
+              <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-4">
+                อาหารไทยรสต้นตำรับ<br class="hidden md:block"/>อร่อยร้อนๆ ถึงหน้าบ้าน
+              </h2>
+              <p class="text-gray-600 text-base md:text-lg mb-6">
+                คัดสรรวัตถุดิบคุณภาพ ปรุงสดทุกออเดอร์ พร้อมโปรโมชั่นสุดคุ้มสำหรับคุณ
+              </p>
+              <div class="flex flex-col sm:flex-row gap-3">
+                <button onclick="showCustomerSection('menu')" class="btn-primary text-white px-6 py-3 rounded-lg font-semibold">
+                  เริ่มสั่งอาหาร
+                </button>
+                <button onclick="showCustomerSection('favorites')" class="px-6 py-3 rounded-lg font-semibold border bg-white hover:bg-gray-100">
+                  ดูเมนูแนะนำ
+                </button>
+              </div>
+              <div class="mt-6 grid grid-cols-3 gap-4 text-center">
+                <div class="bg-white rounded-xl border p-3">
+                  <div class="text-xl font-bold text-gray-900">4.9</div>
+                  <div class="text-xs text-gray-500">เรตติ้งเฉลี่ย</div>
+                </div>
+                <div class="bg-white rounded-xl border p-3">
+                  <div class="text-xl font-bold text-gray-900">~30 นาที</div>
+                  <div class="text-xs text-gray-500">เวลาเตรียม</div>
+                </div>
+                <div class="bg-white rounded-xl border p-3">
+                  <div class="text-xl font-bold text-gray-900">ฟรีค่าส่ง</div>
+                  <div class="text-xs text-gray-500">เมื่อสั่ง 300+</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right media -->
+            <div>
+              <div class="relative rounded-2xl overflow-hidden shadow-sm border bg-white">
+                <img id="heroImage" src="" alt="เมนูยอดฮิต" class="w-full h-80 object-cover" onerror="setPlaceholderImg(this, 'รูปภาพไม่พร้อมใช้งาน')" />
+                <div class="absolute top-4 left-4 inline-flex items-center px-3 py-1 rounded-full bg-white/90 border text-gray-800 text-xs">
+                  เมนูฮิตประจำร้าน
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Featured Menu -->
+        <div class="mb-8">
+          <h3 class="text-2xl font-bold text-gray-800 mb-6">เมนูแนะนำ</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="featuredMenu"></div>
+        </div>
+
+        <!-- Promotions -->
+        <div class="mb-8">
+          <h3 class="text-2xl font-bold text-gray-800 mb-6">โปรโมชั่นพิเศษ</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-gradient-to-r from-green-400 to-blue-500 rounded-xl p-6 text-white">
+              <h4 class="text-xl font-bold mb-2">🚚 ฟรีค่าส่ง</h4>
+              <p>สำหรับออเดอร์ขั้นต่ำ 300 บาท</p>
+              <p class="text-sm mt-2 opacity-90">ใช้โค้ด: FREESHIP300</p>
+            </div>
+            <div class="bg-gradient-to-r from-purple-400 to-pink-500 rounded-xl p-6 text-white">
+              <h4 class="text-xl font-bold mb-2">⭐ ลด 20%</h4>
+              <p>สำหรับสมาชิกใหม่ทุกเมนู</p>
+              <p class="text-sm mt-2 opacity-90">ใช้โค้ด: NEWMEMBER20</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- OnStove-like Recommended Section -->
+        <section class="mb-10">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-2xl font-extrabold text-gray-900">เมนูแนะนำสำหรับคุณ</h3>
+          </div>
+          <div class="rounded-xl bg-gray-100 p-1 flex gap-2 mb-6">
+            <button id="tabBest" class="flex-1 py-3 rounded-lg bg-gray-900 text-white font-semibold">ยอดนิยม</button>
+            <button id="tabValue" class="flex-1 py-3 rounded-lg text-gray-700 hover:bg-white">สุดคุ้ม/ฟรีค่าส่ง</button>
+          </div>
+          <div id="recommendedGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Customer Menu -->
+    <div id="customerMenu" class="customer-section hidden">
+      <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-3xl font-bold text-gray-800">เมนูอาหาร</h2>
+          <div class="flex space-x-4">
+            <select id="categoryFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+              <option value="">ทุกหมวดหมู่</option>
+              <option value="appetizer">อาหารเรียกน้ำย่อย</option>
+              <option value="main">อาหารจานหลัก</option>
+              <option value="dessert">ของหวาน</option>
+              <option value="beverage">เครื่องดื่ม</option>
+            </select>
+            <input type="text" id="menuSearch" placeholder="ค้นหาเมนู..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="menuGrid"></div>
+      </div>
+    </div>
+
+    <!-- Customer Favorites -->
+    <div id="customerFavorites" class="customer-section hidden">
+      <div class="max-w-7xl mx-auto px-4 py-8">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">เมนูโปรด</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="favoritesGrid"></div>
+      </div>
+    </div>
+
+    <!-- Customer Orders -->
+    <div id="customerOrders" class="customer-section hidden">
+      <div class="max-w-7xl mx-auto px-4 py-8">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">ออเดอร์ของฉัน</h2>
+        <div class="space-y-6" id="ordersHistory"></div>
+      </div>
+    </div>
+
+    <!-- Customer Cart -->
+    <div id="customerCart" class="customer-section hidden">
+      <div class="max-w-7xl mx-auto px-4 py-8">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">ตะกร้าสินค้า</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Left: Cart items list -->
+          <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">รายการ</h3>
+                <button onclick="clearCart()" class="text-sm text-red-600 hover:text-red-700"><i class="fas fa-trash-alt mr-1"></i>ล้างตะกร้า</button>
+              </div>
+              <div id="cartItems" class="space-y-4"></div>
+            </div>
+          </div>
+
+          <!-- Right: Order summary -->
+          <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl shadow-lg p-6 lg:sticky lg:top-6">
+              <h3 class="text-lg font-semibold text-gray-800 mb-4">สรุปคำสั่งซื้อ</h3>
+              <div class="mb-4" id="cartTotal">0 บาท</div>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">คูปองส่วนลด</label>
+                  <select id="voucherSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg"></select>
+                  <p class="text-xs text-gray-500 mt-1">เลือกคูปองที่ใช้งานได้จากร้าน</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">ประเภทการสั่ง</label>
+                  <select id="orderType" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="updateCartTotal(); renderPaymentSection();">
+                    <option value="delivery">เดลิเวอรี่</option>
+                    <option value="dine-in">ทานในร้าน</option>
+                  </select>
+                </div>
+                <div id="deliveryAddress">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">ที่อยู่จัดส่ง</label>
+                  <textarea id="deliveryAddressText" class="w-full px-4 py-2 border border-gray-300 rounded-lg" rows="3" placeholder="กรุณาใส่ที่อยู่สำหรับจัดส่ง"></textarea>
+                  <div class="flex flex-col gap-2 mt-2">
+                    <div class="flex items-center gap-3">
+                      <button type="button" onclick="useCurrentLocation()" class="px-3 py-1.5 rounded-lg text-xs bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100"><i class="fas fa-location-arrow mr-1"></i>ใช้ตำแหน่งปัจจุบัน</button>
+                      <label class="flex items-center gap-2 text-xs text-gray-700">
+                        <input type="checkbox" id="useCurrentAddressOnly" onchange="toggleUseCurrentAddress()" class="form-checkbox" />
+                        ใช้ที่อยู่ปัจจุบัน (ไม่กรอกข้อความ)
+                      </label>
+                    </div>
+                    <span id="locationStatus" class="text-xs text-gray-500 hidden"></span>
+                  </div>
+                  <input type="hidden" id="deliveryLat" />
+                  <input type="hidden" id="deliveryLng" />
+                </div>
+                <div id="paymentSection" class="space-y-3">
+                  <label class="block text-sm font-medium text-gray-700">วิธีชำระเงิน</label>
+                  <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-6 space-y-2 sm:space-y-0">
+                    <label class="inline-flex items-center space-x-2">
+                      <input type="radio" name="paymentMethod" id="payCod" value="cod" class="form-radio" />
+                      <span>ชำระปลายทาง (COD)</span>
+                    </label>
+                    <label class="inline-flex items-center space-x-2">
+                      <input type="radio" name="paymentMethod" id="payQr" value="qr" class="form-radio" />
+                      <span>ชำระทันที (โอน/QR)</span>
+                    </label>
+                    <label class="inline-flex items-center space-x-2">
+                      <input type="radio" name="paymentMethod" id="payStaff" value="staff" class="form-radio" />
+                      <span>ชำระที่พนักงาน (ทานในร้าน)</span>
+                    </label>
+                  </div>
+                  <div id="paymentQR" class="hidden">
+                    <div class="mt-2 inline-block p-4 bg-white border-2 border-gray-300 rounded-lg">
+                      <div id="paymentQRCode" class="w-40 h-40 bg-gray-100 flex items-center justify-center text-gray-500 text-xs">
+                        📱 QR Code<br />รอสร้างเมื่อเลือกชำระเงิน
+                      </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">สแกนเพื่อชำระเงินผ่าน PromptPay/ธนาคาร</p>
+                  </div>
+                </div>
+                <button onclick="checkout()" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">สั่งอาหาร</button>
+                <p class="text-xs text-gray-500 text-center">การยืนยันการสั่งซื้อหมายถึงคุณยอมรับเงื่อนไขการให้บริการและนโยบายความเป็นส่วนตัว</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Staff Interface -->
+  <div id="staffInterface" class="hidden">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      <!-- Staff Navigation -->
+      <div class="flex space-x-4 mb-8 flex-wrap">
+        <button onclick="showStaffSection('orders', event)" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 staff-nav-btn active"><i class="fas fa-clipboard-list mr-2"></i>รอเสิร์ฟ</button>
+        <button onclick="showStaffSection('payment', event)" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 staff-nav-btn"><i class="fas fa-cash-register mr-2"></i>รอชำระเงิน</button>
+        <button onclick="showStaffSection('history', event)" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 staff-nav-btn"><i class="fas fa-history mr-2"></i>บันทึกออเดอร์</button>
+        <button onclick="showStaffSection('stats', event)" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 staff-nav-btn"><i class="fas fa-chart-bar mr-2"></i>สถิติ</button>
+      </div>
+
+      <!-- Orders to Serve Section -->
+      <div id="staffOrders" class="staff-section">
+        <div class="dashboard-card">
+          <h3 class="text-xl font-bold text-gray-800 mb-4">ออเดอร์ที่รอเสิร์ฟ</h3>
+          <div class="space-y-4" id="staffOrdersList"></div>
+        </div>
+      </div>
+
+      <!-- Payment Section -->
+      <div id="staffPayment" class="staff-section hidden">
+        <div class="dashboard-card">
+          <h3 class="text-xl font-bold text-gray-800 mb-4">ออเดอร์รอชำระเงิน</h3>
+          <div class="space-y-4" id="staffPaymentList"></div>
+        </div>
+      </div>
+
+      <!-- Order History Section -->
+      <div id="staffHistory" class="staff-section hidden">
+        <div class="dashboard-card">
+          <h3 class="text-xl font-bold text-gray-800 mb-6">บันทึกออเดอร์</h3>
+          
+          <!-- Time Period Selector -->
+          <div class="flex space-x-4 mb-6">
+            <button onclick="showStaffHistory('day')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 history-tab-btn active" id="dayTab">วันนี้</button>
+            <button onclick="showStaffHistory('week')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 history-tab-btn" id="weekTab">สัปดาห์นี้</button>
+            <button onclick="showStaffHistory('month')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 history-tab-btn" id="monthTab">เดือนนี้</button>
+            <button onclick="showStaffHistory('year')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 history-tab-btn" id="yearTab">ปีนี้</button>
+          </div>
+
+          <!-- History Content -->
+          <div id="staffHistoryContent">
+            <!-- Summary Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div class="bg-blue-50 p-4 rounded-lg">
+                <div class="text-sm text-blue-600">ออเดอร์ทั้งหมด</div>
+                <div class="text-2xl font-bold text-blue-800" id="historyTotalOrders">0</div>
+              </div>
+              <div class="bg-green-50 p-4 rounded-lg">
+                <div class="text-sm text-green-600">ยอดขายรวม</div>
+                <div class="text-2xl font-bold text-green-800" id="historyTotalSales">0 บาท</div>
+              </div>
+              <div class="bg-purple-50 p-4 rounded-lg">
+                <div class="text-sm text-purple-600">ออเดอร์เฉลี่ย/วัน</div>
+                <div class="text-2xl font-bold text-purple-800" id="historyAvgOrders">0</div>
+              </div>
+              <div class="bg-orange-50 p-4 rounded-lg">
+                <div class="text-sm text-orange-600">ออเดอร์เสิร์ฟแล้ว</div>
+                <div class="text-2xl font-bold text-orange-800" id="historyServedOrders">0</div>
+              </div>
+            </div>
+
+            <!-- Order List -->
+            <div class="space-y-3" id="staffHistoryList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Staff Stats Section -->
+      <div id="staffStats" class="staff-section hidden">
+        <!-- สถิติตัวเอง -->
+        <div class="dashboard-card mb-6">
+          <h3 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-user-circle mr-2 text-blue-500"></i>สถิติการทำงานของฉัน (วันนี้)
+          </h3>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="text-center p-4 bg-blue-50 rounded-lg">
+              <div class="text-3xl font-bold text-blue-600" id="myOrdersServed">0</div>
+              <div class="text-sm text-gray-600 mt-1">ออเดอร์ที่เสิร์ฟ</div>
+            </div>
+            <div class="text-center p-4 bg-orange-50 rounded-lg">
+              <div class="text-3xl font-bold text-orange-600" id="myPendingPayments">0</div>
+              <div class="text-sm text-gray-600 mt-1">รอชำระเงิน</div>
+            </div>
+            <div class="text-center p-4 bg-green-50 rounded-lg">
+              <div class="text-3xl font-bold text-green-600" id="myCompletedPayments">0</div>
+              <div class="text-sm text-gray-600 mt-1">ชำระแล้ว</div>
+            </div>
+            <div class="text-center p-4 bg-purple-50 rounded-lg">
+              <div class="text-3xl font-bold text-purple-600" id="myTotalSales">0</div>
+              <div class="text-sm text-gray-600 mt-1">ยอดขาย (บาท)</div>
+            </div>
+            <div class="text-center p-4 bg-indigo-50 rounded-lg">
+              <div class="text-3xl font-bold text-indigo-600" id="myAvgOrderValue">0</div>
+              <div class="text-sm text-gray-600 mt-1">เฉลี่ย/ออเดอร์</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- กราฟสถิติตัวเอง -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div class="dashboard-card">
+            <h4 class="text-lg font-bold text-gray-800 mb-4">ประสิทธิภาพของฉัน (7 วันล่าสุด)</h4>
+            <canvas id="myPerformanceChart" height="140"></canvas>
+          </div>
+          <div class="dashboard-card">
+            <h4 class="text-lg font-bold text-gray-800 mb-4">ช่องทางชำระเงิน (วันนี้)</h4>
+            <canvas id="myPaymentChart" height="140"></canvas>
+          </div>
+        </div>
+
+        <!-- สถิติภาพรวมทุกคน -->
+        <div class="dashboard-card mb-6">
+          <h3 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-users mr-2 text-green-500"></i>สถิติภาพรวมทีม (วันนี้)
+          </h3>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="text-center p-4 bg-blue-50 rounded-lg">
+              <div class="text-3xl font-bold text-blue-600" id="teamOrdersServed">0</div>
+              <div class="text-sm text-gray-600 mt-1">ออเดอร์ที่เสิร์ฟทั้งหมด</div>
+            </div>
+            <div class="text-center p-4 bg-orange-50 rounded-lg">
+              <div class="text-3xl font-bold text-orange-600" id="teamPendingPayments">0</div>
+              <div class="text-sm text-gray-600 mt-1">รอชำระเงิน</div>
+            </div>
+            <div class="text-center p-4 bg-green-50 rounded-lg">
+              <div class="text-3xl font-bold text-green-600" id="teamCompletedPayments">0</div>
+              <div class="text-sm text-gray-600 mt-1">ชำระแล้ว</div>
+            </div>
+            <div class="text-center p-4 bg-purple-50 rounded-lg">
+              <div class="text-3xl font-bold text-purple-600" id="teamTotalSales">0</div>
+              <div class="text-sm text-gray-600 mt-1">ยอดขายรวม (บาท)</div>
+            </div>
+            <div class="text-center p-4 bg-indigo-50 rounded-lg">
+              <div class="text-3xl font-bold text-indigo-600" id="teamStaffCount">0</div>
+              <div class="text-sm text-gray-600 mt-1">พนักงานที่ทำงาน</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- กราฟภาพรวม -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="dashboard-card">
+            <h4 class="text-lg font-bold text-gray-800 mb-4">ยอดขายรายวัน (7 วันล่าสุด)</h4>
+            <canvas id="teamSalesChart" height="200"></canvas>
+          </div>
+          <div class="dashboard-card">
+            <h4 class="text-lg font-bold text-gray-800 mb-4">ประสิทธิภาพพนักงาน (วันนี้)</h4>
+            <canvas id="teamPerformanceChart" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chef Interface -->
+  <div id="chefInterface" class="hidden">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      <!-- Chef Navigation -->
+      <div class="flex space-x-4 mb-8">
+        <button onclick="showChefSection('orders')" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 chef-nav-btn active"><i class="fas fa-clipboard-list mr-2"></i>ออเดอร์ใหม่</button>
+        <button onclick="showChefSection('menu')" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 chef-nav-btn"><i class="fas fa-utensils mr-2"></i>จัดการเมนู</button>
+        <button onclick="showChefSection('inventory')" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 chef-nav-btn"><i class="fas fa-boxes mr-2"></i>วัตถุดิบ</button>
+        <button onclick="showChefSection('stats')" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 chef-nav-btn"><i class="fas fa-chart-bar mr-2"></i>สถิติ</button>
+      </div>
+
+      <!-- Chef Orders -->
+      <div id="chefOrders" class="chef-section">
+        <div class="dashboard-card">
+          <h3 class="text-xl font-bold text-gray-800 mb-4">ออเดอร์ที่รอทำ</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="chefOrdersList"></div>
+        </div>
+      </div>
+
+      <!-- Chef Menu Management -->
+      <div id="chefMenu" class="chef-section hidden">
+        <div class="dashboard-card">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-gray-800">จัดการเมนู</h3>
+            <div class="space-x-2">
+              <button onclick="showSetModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg"><i class="fas fa-layer-group mr-2"></i>สร้างเซ็ตอาหาร</button>
+              <button onclick="showAddMenuModal()" class="btn-primary text-white px-4 py-2 rounded-lg"><i class="fas fa-plus mr-2"></i>เพิ่มเมนูใหม่</button>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="chefMenuList"></div>
+        </div>
+      </div>
+
+      <!-- Chef Inventory -->
+      <div id="chefInventory" class="chef-section hidden">
+        <div class="dashboard-card">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-gray-800">จัดการวัตถุดิบ</h3>
+            <button onclick="showNotification('เพิ่มวัตถุดิบใหม่แล้ว', 'success')" class="btn-primary text-white px-4 py-2 rounded-lg"><i class="fas fa-plus mr-2"></i>เพิ่มวัตถุดิบ</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full table-auto">
+              <thead>
+                <tr class="bg-gray-50">
+                  <th class="px-4 py-2 text-left">วัตถุดิบ</th>
+                  <th class="px-4 py-2 text-left">จำนวนคงเหลือ</th>
+                  <th class="px-4 py-2 text-left">หน่วย</th>
+                  <th class="px-4 py-2 text-left">สถานะ</th>
+                  <th class="px-4 py-2 text-left">การจัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="inventoryTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chef Statistics -->
+      <div id="chefStats" class="chef-section hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div class="dashboard-card text-center">
+            <div class="text-3xl text-blue-500 mb-2">📋</div>
+            <div class="text-2xl font-bold" id="chefTotalOrders">0</div>
+            <div class="text-gray-600">ออเดอร์ทั้งหมด</div>
+          </div>
+          <div class="dashboard-card text-center">
+            <div class="text-3xl text-green-500 mb-2">✅</div>
+            <div class="text-2xl font-bold" id="chefCompletedOrders">0</div>
+            <div class="text-gray-600">ออเดอร์เสร็จแล้ว</div>
+          </div>
+          <div class="dashboard-card text-center">
+            <div class="text-3xl text-orange-500 mb-2">⏱️</div>
+            <div class="text-2xl font-bold" id="chefAvgTime">25</div>
+            <div class="text-gray-600">เวลาเฉลี่ย (นาที)</div>
+          </div>
+          <div class="dashboard-card text-center">
+            <div class="text-3xl text-purple-500 mb-2">⭐</div>
+            <div class="text-2xl font-bold" id="chefRating">4.8</div>
+            <div class="text-gray-600">คะแนนเฉลี่ย</div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="dashboard-card">
+            <h4 class="font-semibold text-gray-800 mb-3">สถานะออเดอร์วันนี้</h4>
+            <div class="space-y-2 text-sm" id="chefStatusList"></div>
+          </div>
+          <div class="dashboard-card">
+            <h4 class="font-semibold text-gray-800 mb-3">ออเดอร์ตามหมวดหมู่</h4>
+            <div class="space-y-2 text-sm" id="chefCategoryList"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div class="dashboard-card">
+            <h4 class="font-semibold text-gray-800 mb-3">ประวัติออเดอร์ (ล่าสุด)</h4>
+            <div class="space-y-2 text-sm" id="chefOrderHistory"></div>
+          </div>
+          <div class="dashboard-card">
+            <h4 class="font-semibold text-gray-800 mb-3">เมนูล่าสุด</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="chefLatestItems"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rider Interface -->
+  <div id="riderInterface" class="hidden">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      <!-- Rider Navigation -->
+      <div class="flex items-center justify-between mb-8">
+        <div class="flex space-x-4">
+        <button onclick="showRiderSection('available')" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 rider-nav-btn active"><i class="fas fa-motorcycle mr-2"></i>งานที่รับได้</button>
+        <button onclick="showRiderSection('current')" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 rider-nav-btn"><i class="fas fa-route mr-2"></i>งานปัจจุบัน</button>
+        <button onclick="showRiderSection('history')" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 rider-nav-btn"><i class="fas fa-history mr-2"></i>ประวัติการส่ง</button>
+        <button onclick="showRiderSection('stats')" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 rider-nav-btn"><i class="fas fa-chart-line mr-2"></i>สถิติ</button>
+        </div>
+        <label class="inline-flex items-center space-x-2 text-sm text-gray-700">
+          <input id="autoOpenGpsToggle" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded" checked>
+          <span>เปิดแผนอัตโนมัติหลังรับงาน</span>
+        </label>
+      </div>
+
+      <!-- Available Deliveries -->
+      <div id="riderAvailable" class="rider-section">
+        <div class="dashboard-card">
+          <h3 class="text-xl font-bold text-gray-800 mb-4">งานส่งที่รับได้</h3>
+          <div class="space-y-4" id="availableDeliveries"></div>
+        </div>
+      </div>
+
+      <!-- Current Delivery -->
+      <div id="riderCurrent" class="rider-section hidden">
+        <div class="dashboard-card">
+          <h3 class="text-xl font-bold text-gray-800 mb-4">งานปัจจุบัน</h3>
+          <div id="currentDelivery"></div>
+        </div>
+      </div>
+
+      <!-- Delivery History -->
+      <div id="riderHistory" class="rider-section hidden">
+        <div class="dashboard-card">
+          <h3 class="text-xl font-bold text-gray-800 mb-4">ประวัติการส่ง</h3>
+          <div class="space-y-4" id="deliveryHistory"></div>
+        </div>
+      </div>
+
+      <!-- Rider Statistics -->
+      <div id="riderStats" class="rider-section hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="dashboard-card text-center">
+            <div class="text-3xl text-blue-500 mb-2">🚚</div>
+            <div class="text-2xl font-bold" id="riderTotalDeliveries">0</div>
+            <div class="text-gray-600">การส่งทั้งหมด</div>
+          </div>
+          <div class="dashboard-card text-center">
+            <div class="text-3xl text-green-500 mb-2">💰</div>
+            <div class="text-2xl font-bold" id="riderTotalEarnings">0</div>
+            <div class="text-gray-600">รายได้รวม (บาท)</div>
+          </div>
+          <div class="dashboard-card text-center">
+            <div class="text-3xl text-orange-500 mb-2">⏱️</div>
+            <div class="text-2xl font-bold" id="riderAvgTime">18</div>
+            <div class="text-gray-600">เวลาเฉลี่ย (นาที)</div>
+          </div>
+          <div class="dashboard-card text-center">
+            <div class="text-3xl text-purple-500 mb-2">⭐</div>
+            <div class="text-2xl font-bold" id="riderRating">4.9</div>
+            <div class="text-gray-600">คะแนนเฉลี่ย</div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div class="dashboard-card">
+            <h4 class="font-semibold text-gray-800 mb-3">สัดส่วนการชำระเงิน</h4>
+            <div class="flex items-center justify-between text-sm mb-1"><span>QR/โอน</span><span id="riderQrPct">0%</span></div>
+            <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-2"><div id="riderQrBar" class="h-2 bg-purple-500" style="width:0%"></div></div>
+            <div class="flex items-center justify-between text-sm mb-1"><span>เก็บปลายทาง</span><span id="riderCodPct">0%</span></div>
+            <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden"><div id="riderCodBar" class="h-2 bg-green-500" style="width:0%"></div></div>
+          </div>
+          <div class="dashboard-card">
+            <h4 class="font-semibold text-gray-800 mb-3">แนวโน้มงานรายวัน</h4>
+            <div id="riderDailySpark" class="flex items-end gap-1 h-16">
+              <!-- tiny bars injected by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Interface -->
+  <div id="adminInterface" class="hidden">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      <!-- Admin Navigation -->
+      <div class="flex flex-wrap gap-2 mb-8">
+        <button onclick="showAdminSection('dashboard')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 admin-nav-btn active text-sm"><i class="fas fa-tachometer-alt mr-1"></i>แดชบอร์ด</button>
+        <button onclick="showAdminSection('orders')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 admin-nav-btn text-sm"><i class="fas fa-receipt mr-1"></i>ออเดอร์</button>
+  <button onclick="showAdminSection('menu')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 admin-nav-btn text-sm"><i class="fas fa-utensils mr-1"></i>เมนู</button>
+  <button onclick="showAdminSection('combos')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 admin-nav-btn text-sm"><i class="fas fa-layer-group mr-1"></i>เซ็ต/ส่วนลด</button>
+        <button onclick="showAdminSection('users')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 admin-nav-btn text-sm"><i class="fas fa-users mr-1"></i>ผู้ใช้</button>
+        <button onclick="showAdminSection('reports')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 admin-nav-btn text-sm"><i class="fas fa-chart-bar mr-1"></i>รายงาน</button>
+        <button onclick="showAdminSection('settings')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 admin-nav-btn text-sm"><i class="fas fa-cog mr-1"></i>ตั้งค่า</button>
+      </div>
+
+      <!-- Admin Dashboard -->
+      <div id="adminDashboard" class="admin-section">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div class="dashboard-card text-center">
+            <div class="text-3xl text-blue-500 mb-2">📊</div>
+            <div class="text-2xl font-bold" id="adminTotalOrders">0</div>
+            <div class="text-gray-600">ออเดอร์วันนี้</div>
+          </div>
+          <div class="dashboard-card text-center">
+            <div class="text-3xl text-green-500 mb-2">💰</div>
+            <div class="text-2xl font-bold" id="adminTotalRevenue">0</div>
+            <div class="text-gray-600">รายได้วันนี้</div>
+          </div>
+          <div class="dashboard-card text-center">
+            <div class="text-3xl text-orange-500 mb-2">👥</div>
+            <div class="text-2xl font-bold" id="adminActiveUsers">5</div>
+            <div class="text-gray-600">ผู้ใช้ออนไลน์</div>
+          </div>
+          <div class="dashboard-card text-center">
+            <div class="text-3xl text-purple-500 mb-2">⭐</div>
+            <div class="text-2xl font-bold" id="adminAvgRating">4.7</div>
+            <div class="text-gray-600">คะแนนเฉลี่ย</div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="dashboard-card">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">ออเดอร์ล่าสุด</h3>
+            <div class="space-y-3" id="adminRecentOrders"></div>
+          </div>
+          <div class="dashboard-card">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">สถิติพนักงาน</h3>
+            <div class="space-y-3" id="adminStaffStats">
+              <div class="flex justify-between"><span>เชฟที่ทำงาน:</span> <span class="font-bold">2 คน</span></div>
+              <div class="flex justify-between"><span>ไรเดอร์ที่ทำงาน:</span> <span class="font-bold">3 คน</span></div>
+              <div class="flex justify-between"><span>พนักงานที่ทำงาน:</span> <span class="font-bold">2 คน</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Other admin sections -->
+      <div id="adminOrders" class="admin-section hidden">
+        <div class="dashboard-card">
+          <h3 class="text-xl font-bold text-gray-800 mb-4">จัดการออเดอร์ทั้งหมด</h3>
+          <div class="space-y-4" id="adminOrdersList"></div>
+        </div>
+      </div>
+
+      <div id="adminMenu" class="admin-section hidden">
+        <div class="dashboard-card">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-gray-800">จัดการเมนูทั้งหมด</h3>
+            <div class="space-x-2">
+              <button onclick="showSetModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg"><i class="fas fa-layer-group mr-2"></i>สร้างเซ็ตอาหาร</button>
+              <button onclick="showAddMenuModal()" class="btn-primary text-white px-4 py-2 rounded-lg"><i class="fas fa-plus mr-2"></i>เพิ่มเมนูใหม่</button>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="adminMenuList"></div>
+        </div>
+      </div>
+
+      <div id="adminCombos" class="admin-section hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="dashboard-card">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-xl font-bold text-gray-800">เซ็ตอาหาร</h3>
+              <button onclick="showSetModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-plus mr-2"></i>เพิ่มเซ็ต</button>
+            </div>
+            <div id="adminSetsList" class="space-y-3"></div>
+          </div>
+          <div class="dashboard-card">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">ส่วนลด</h3>
+            <div class="space-y-6">
+              <div>
+                <h4 class="font-semibold mb-2">ส่วนลดเมนู</h4>
+                <div id="adminMenuDiscounts" class="space-y-2"></div>
+              </div>
+              <div>
+                <h4 class="font-semibold mb-2">ส่วนลดเซ็ต</h4>
+                <div id="adminSetDiscounts" class="space-y-2"></div>
+              </div>
+              <button onclick="saveDiscounts()" class="btn-primary text-white px-4 py-2 rounded-lg">บันทึกส่วนลด</button>
+            </div>
+          </div>
+        </div>
+        <div class="mt-8 grid grid-cols-1">
+          <div class="dashboard-card">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-xl font-bold text-gray-800">คูปองส่วนลด</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4">
+              <input id="voucherCode" type="text" class="px-3 py-2 border rounded" placeholder="โค้ดคูปอง" />
+              <select id="voucherType" class="px-3 py-2 border rounded">
+                <option value="percent">เปอร์เซ็นต์ (%)</option>
+                <option value="fixed">จำนวนเงิน (฿)</option>
+              </select>
+              <input id="voucherValue" type="number" class="px-3 py-2 border rounded" placeholder="ค่า" />
+              <input id="voucherMin" type="number" class="px-3 py-2 border rounded" placeholder="ยอดขั้นต่ำ" />
+              <button onclick="addVoucher()" class="btn-primary text-white px-4 py-2 rounded">เพิ่มคูปอง</button>
+            </div>
+            <div id="adminVouchersList" class="space-y-2"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="adminUsers" class="admin-section hidden">
+        <div class="dashboard-card">
+          <h3 class="text-xl font-bold text-gray-800 mb-4">จัดการผู้ใช้</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full table-auto">
+              <thead>
+                <tr class="bg-gray-50">
+                  <th class="px-4 py-2 text-left">ชื่อ</th>
+                  <th class="px-4 py-2 text-left">อีเมล</th>
+                  <th class="px-4 py-2 text-left">บทบาท</th>
+                  <th class="px-4 py-2 text-left">สถานะ</th>
+                  <th class="px-4 py-2 text-left">การจัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="adminUsersTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="adminReports" class="admin-section hidden">
+        <!-- ช่วงเวลาที่เลือก -->
+        <div class="dashboard-card mb-6">
+          <div class="flex flex-wrap gap-2 mb-4">
+            <button onclick="loadAdminReports('day')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 report-tab-btn active" id="dayReportTab">วันนี้</button>
+            <button onclick="loadAdminReports('week')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 report-tab-btn" id="weekReportTab">สัปดาห์นี้</button>
+            <button onclick="loadAdminReports('month')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 report-tab-btn" id="monthReportTab">เดือนนี้</button>
+            <button onclick="loadAdminReports('year')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 report-tab-btn" id="yearReportTab">ปีนี้</button>
+          </div>
+        </div>
+
+        <!-- สรุปภาพรวม -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div class="dashboard-card text-center">
+            <div class="text-sm text-gray-600 mb-2">ยอดขายรวม</div>
+            <div class="text-3xl font-bold text-green-600" id="adminReportTotalSales">0</div>
+            <div class="text-xs text-gray-500 mt-1">บาท</div>
+          </div>
+          <div class="dashboard-card text-center">
+            <div class="text-sm text-gray-600 mb-2">ออเดอร์ทั้งหมด</div>
+            <div class="text-3xl font-bold text-blue-600" id="adminReportTotalOrders">0</div>
+            <div class="text-xs text-gray-500 mt-1">รายการ</div>
+          </div>
+          <div class="dashboard-card text-center">
+            <div class="text-sm text-gray-600 mb-2">ค่าเฉลี่ย/ออเดอร์</div>
+            <div class="text-3xl font-bold text-purple-600" id="adminReportAvgOrder">0</div>
+            <div class="text-xs text-gray-500 mt-1">บาท</div>
+          </div>
+          <div class="dashboard-card text-center">
+            <div class="text-sm text-gray-600 mb-2">เมนูขายดี</div>
+            <div class="text-2xl font-bold text-orange-600" id="adminReportTopMenu">-</div>
+            <div class="text-xs text-gray-500 mt-1">เมนู</div>
+          </div>
+        </div>
+
+        <!-- กราฟยอดขายและออเดอร์ -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div class="dashboard-card">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">กราฟยอดขาย</h3>
+            <canvas id="adminSalesChart" height="250"></canvas>
+          </div>
+          <div class="dashboard-card">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">ประเภทการสั่ง</h3>
+            <canvas id="adminOrderTypeChart" height="250"></canvas>
+          </div>
+        </div>
+
+        <!-- รายงานตามบทบาท -->
+        <div class="dashboard-card mb-6">
+          <h3 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-users mr-2 text-blue-500"></i>รายงานการทำงานตามบทบาท
+          </h3>
+          
+          <!-- เชฟ -->
+          <div class="mb-6">
+            <h4 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+              <i class="fas fa-hat-chef mr-2 text-red-500"></i>เชฟ
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+              <div class="bg-red-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600">ออเดอร์ที่รับ</div>
+                <div class="text-2xl font-bold text-red-600" id="chefAcceptedOrders">0</div>
+              </div>
+              <div class="bg-orange-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600">กำลังทำ</div>
+                <div class="text-2xl font-bold text-orange-600" id="chefPreparingOrders">0</div>
+              </div>
+              <div class="bg-green-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600">เสร็จแล้ว</div>
+                <div class="text-2xl font-bold text-green-600" id="chefCompletedOrders">0</div>
+              </div>
+              <div class="bg-purple-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600">เวลาเฉลี่ย</div>
+                <div class="text-2xl font-bold text-purple-600" id="chefAvgTime">0</div>
+                <div class="text-xs text-gray-500">นาที</div>
+              </div>
+            </div>
+            <div class="dashboard-card bg-gray-50">
+              <h5 class="font-semibold mb-2">รายชื่อเชฟ</h5>
+              <div id="chefsList" class="space-y-2"></div>
+            </div>
+          </div>
+
+          <!-- พนักงาน -->
+          <div class="mb-6">
+            <h4 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+              <i class="fas fa-user-tie mr-2 text-blue-500"></i>พนักงาน
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+              <div class="bg-blue-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600">ออเดอร์ที่เสิร์ฟ</div>
+                <div class="text-2xl font-bold text-blue-600" id="staffServedOrders">0</div>
+              </div>
+              <div class="bg-green-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600">รับชำระเงิน</div>
+                <div class="text-2xl font-bold text-green-600" id="staffPaymentsProcessed">0</div>
+              </div>
+              <div class="bg-purple-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600">ยอดขายรวม</div>
+                <div class="text-2xl font-bold text-purple-600" id="staffTotalSalesAmount">0</div>
+                <div class="text-xs text-gray-500">บาท</div>
+              </div>
+              <div class="bg-indigo-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600">เวลาเฉลี่ย</div>
+                <div class="text-2xl font-bold text-indigo-600" id="staffAvgTime">0</div>
+                <div class="text-xs text-gray-500">นาที</div>
+              </div>
+            </div>
+            <div class="dashboard-card bg-gray-50">
+              <h5 class="font-semibold mb-2">รายชื่อพนักงาน</h5>
+              <div id="staffList" class="space-y-2"></div>
+            </div>
+          </div>
+
+          <!-- ไรเดอร์ -->
+          <div class="mb-6">
+            <h4 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+              <i class="fas fa-motorcycle mr-2 text-green-500"></i>ไรเดอร์
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+              <div class="bg-green-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600">ออเดอร์ที่รับ</div>
+                <div class="text-2xl font-bold text-green-600" id="riderAcceptedOrders">0</div>
+              </div>
+              <div class="bg-blue-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600">กำลังส่ง</div>
+                <div class="text-2xl font-bold text-blue-600" id="riderDeliveringOrders">0</div>
+              </div>
+              <div class="bg-purple-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600">ส่งสำเร็จ</div>
+                <div class="text-2xl font-bold text-purple-600" id="riderCompletedOrders">0</div>
+              </div>
+              <div class="bg-orange-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600">เวลาเฉลี่ย</div>
+                <div class="text-2xl font-bold text-orange-600" id="riderAvgTime">0</div>
+                <div class="text-xs text-gray-500">นาที</div>
+              </div>
+            </div>
+            <div class="dashboard-card bg-gray-50">
+              <h5 class="font-semibold mb-2">รายชื่อไรเดอร์</h5>
+              <div id="ridersList" class="space-y-2"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- กราฟประสิทธิภาพตามบทบาท -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="dashboard-card">
+            <h4 class="text-lg font-bold text-gray-800 mb-4">ประสิทธิภาพเชฟ</h4>
+            <canvas id="chefPerformanceChart" height="250"></canvas>
+          </div>
+          <div class="dashboard-card">
+            <h4 class="text-lg font-bold text-gray-800 mb-4">ประสิทธิภาพพนักงาน</h4>
+            <canvas id="staffPerformanceChartAdmin" height="250"></canvas>
+          </div>
+          <div class="dashboard-card">
+            <h4 class="text-lg font-bold text-gray-800 mb-4">ประสิทธิภาพไรเดอร์</h4>
+            <canvas id="riderPerformanceChart" height="250"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div id="adminSettings" class="admin-section hidden">
+        <div class="dashboard-card">
+          <h3 class="text-xl font-bold text-gray-800 mb-6">ตั้งค่าระบบ</h3>
+          <div class="space-y-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">รูปภาพหน้าหลัก</label>
+              <div class="space-y-3">
+                <div class="flex space-x-2">
+                  <input type="url" id="heroImageUrl" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg" placeholder="หรือใส่ URL รูปภาพ (https://...)" />
+                  <button onclick="saveSettings()" class="btn-primary text-white px-4 py-2 rounded-lg">อัพเดทรูป</button>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <input type="file" id="heroImageFile" accept="image/*" class="hidden" onchange="handleAdminImageUpload(event, 'hero')" />
+                  <button onclick="document.getElementById('heroImageFile').click()" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
+                    <i class="fas fa-upload mr-2"></i>เลือกไฟล์จากเครื่อง
+                  </button>
+                  <span class="text-xs text-gray-500">หรือ</span>
+                  <button onclick="promptAdminImageUrl('hero')" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                    <i class="fas fa-link mr-2"></i>ใส่ลิงก์
+                  </button>
+                </div>
+              </div>
+              <p class="text-xs text-gray-500 mt-2">แนะนำใช้ภาพแนวนอน 16:9 หรือ 4:3 ขนาดอย่างน้อย 1000px กว้าง</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">QR Code สำหรับการชำระเงิน</label>
+              <div class="flex space-x-4">
+                <input type="text" id="qrCodeData" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg" placeholder="ข้อมูล QR Code (เช่น PromptPay)" value="0812345678" />
+                <button onclick="generateQRCode()" class="btn-primary text-white px-4 py-2 rounded-lg">สร้าง QR</button>
+              </div>
+              <div id="qrCodeDisplay" class="mt-4 text-center">
+                <div class="inline-block p-4 bg-white border-2 border-gray-300 rounded-lg">
+                  <div id="qrCodeImage" class="w-48 h-48 bg-gray-100 flex items-center justify-center text-gray-500">
+                    📱 QR Code PromptPay<br />0812345678
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">ค่าส่งเริ่มต้น (บาท)</label>
+                <input type="number" id="defaultDeliveryFee" class="w-full px-4 py-2 border border-gray-300 rounded-lg" value="30" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">เวลาเตรียมอาหารเฉลี่ย (นาที)</label>
+                <input type="number" id="avgPrepTime" class="w-full px-4 py-2 border border-gray-300 rounded-lg" value="20" />
+              </div>
+            </div>
+            <button onclick="saveSettings()" class="btn-primary text-white px-6 py-2 rounded-lg">บันทึกการตั้งค่า</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Menu Modal -->
+<!-- Tracking Modal -->
+<div id="trackingModal" class="fixed inset-0 bg-black bg-opacity-50 modal flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-2xl p-6 max-w-xl w-full mx-4 relative">
+    <button onclick="closeTrackingModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+    <h2 class="text-xl font-bold text-gray-800 mb-4">ติดตามออเดอร์</h2>
+    <div id="trackingContent" class="space-y-3 text-sm">
+      <div class="flex items-center justify-between">
+        <div>หมายเลขออเดอร์: <span id="trkOrderId" class="font-semibold"></span></div>
+        <span id="trkOrderStatus" class="status-badge"></span>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-3">
+        <div class="font-semibold mb-1">ปลายทางลูกค้า</div>
+        <div class="text-gray-700" id="trkCustomerAddr">-</div>
+        <div class="text-xs text-gray-500" id="trkCustomerCoord">-</div>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-3">
+        <div class="font-semibold mb-1">ตำแหน่งไรเดอร์</div>
+        <div class="text-gray-700" id="trkRiderStatus">ยังไม่มีพิกัดปัจจุบัน</div>
+        <div class="text-xs text-gray-500" id="trkRiderCoord">-</div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2 pt-2">
+        <button id="trkOpenMapDest" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700"><i class="fas fa-map-marked-alt mr-1"></i>เปิดแผนที่ปลายทาง</button>
+        <button id="trkOpenMapRider" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"><i class="fas fa-location-arrow mr-1"></i>เปิดพิกัดไรเดอร์</button>
+      </div>
+    </div>
+  </div>
+  
+</div>
+
+<!-- Profile Modal -->
+<div id="profileModal" class="fixed inset-0 bg-black bg-opacity-50 modal flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-2xl p-6 max-w-2xl w-full mx-4 relative">
+    <button onclick="closeProfile()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+    <div class="flex items-center gap-4 mb-5">
+      <div class="relative">
+        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-orange-200 to-pink-200 overflow-hidden flex items-center justify-center text-2xl" id="profileAvatar">
+          <img id="profileAvatarImg" src="" class="w-full h-full object-cover hidden" />
+          <span id="profileAvatarFallback">👤</span>
+        </div>
+        <div class="absolute -bottom-1 -right-1">
+          <button id="profileImageMenuBtn" type="button" class="w-8 h-8 rounded-full bg-white shadow hover:shadow-md flex items-center justify-center text-gray-600"><i class="fas fa-ellipsis-v"></i></button>
+          <div id="profileImageMenu" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+            <button onclick="triggerProfileImageFile()" class="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm"><i class="fas fa-upload mr-2"></i>อัปโหลดรูปภาพ…</button>
+            <button onclick="promptProfileImageUrl()" class="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm"><i class="fas fa-link mr-2"></i>ใช้ลิงก์รูปภาพ…</button>
+            <button onclick="clearProfileImage()" class="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm text-red-600"><i class="fas fa-trash-alt mr-2"></i>ลบรูปภาพ</button>
+          </div>
+          <input id="profileImageFile" type="file" accept="image/*" class="hidden" onchange="handleProfileImageUpload(event)" />
+        </div>
+      </div>
+      <div>
+        <div class="text-xl font-bold" id="profileName">-</div>
+        <div class="text-xs px-2 py-0.5 rounded-full inline-block bg-blue-100 text-blue-700" id="profileRole">-</div>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div class="bg-gray-50 rounded-lg p-3">
+        <div class="text-xs text-gray-500">อีเมล</div>
+        <div id="profileEmail" class="font-medium">-</div>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-3">
+        <div class="text-xs text-gray-500">เบอร์โทร</div>
+        <div id="profilePhone" class="font-medium">-</div>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-3">
+        <div class="text-xs text-gray-500">สถานะ</div>
+        <div id="profileActive" class="font-medium">-</div>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="profileStats">
+      <!-- Filled by JS with role-based key metrics -->
+    </div>
+  </div>
+</div>
+<div id="addMenuModal" class="fixed inset-0 bg-black bg-opacity-50 modal flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">เพิ่มเมนูใหม่</h2>
+    <form id="addMenuForm" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อเมนู</label>
+        <input type="text" id="menuName" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">หมวดหมู่</label>
+        <select id="menuCategory" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+          <option value="appetizer">อาหารเรียกน้ำย่อย</option>
+          <option value="main">อาหารจานหลัก</option>
+          <option value="dessert">ของหวาน</option>
+          <option value="beverage">เครื่องดื่ม</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">ราคา (บาท)</label>
+        <input type="number" id="menuPrice" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">อัปโหลดรูปภาพเมนู (จากเครื่อง)</label>
+        <input type="file" id="menuImageFile" accept="image/*" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+        <p class="text-xs text-gray-500 mt-1">หรือใส่ลิงก์ด้านล่าง</p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">ลิงก์รูปภาพเมนู (URL)</label>
+        <input type="url" id="menuImageUrl" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="https://..." />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">คำอธิบาย</label>
+        <textarea id="menuDescription" class="w-full px-4 py-2 border border-gray-300 rounded-lg" rows="3"></textarea>
+      </div>
+      <div class="flex space-x-4">
+        <button type="button" onclick="closeAddMenuModal()" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg">ยกเลิก</button>
+        <button type="submit" class="flex-1 btn-primary text-white py-2 rounded-lg">เพิ่มเมนู</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Menu Modal -->
+<div id="editMenuModal" class="fixed inset-0 bg-black bg-opacity-50 modal flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-2xl p-8 max-w-xl w-full mx-4 max-h-[85vh] overflow-y-auto">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">แก้ไขเมนู</h2>
+    <form id="editMenuForm" class="space-y-4">
+      <input type="hidden" id="editMenuId" />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อเมนู</label>
+          <input type="text" id="editMenuName" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">หมวดหมู่</label>
+          <select id="editMenuCategory" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+            <option value="appetizer">อาหารเรียกน้ำย่อย</option>
+            <option value="main">อาหารจานหลัก</option>
+            <option value="dessert">ของหวาน</option>
+            <option value="beverage">เครื่องดื่ม</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">ราคา (บาท)</label>
+          <input type="number" id="editMenuPrice" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">อัปโหลดรูปภาพเมนู (จากเครื่อง)</label>
+          <input type="file" id="editMenuImageFile" accept="image/*" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+          <p class="text-xs text-gray-500 mt-1">หรือใส่ลิงก์ด้านล่าง</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">ลิงก์รูปภาพเมนู (URL)</label>
+          <input type="url" id="editMenuImageUrl" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="https://..." />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">คำอธิบาย</label>
+        <textarea id="editMenuDescription" class="w-full px-4 py-2 border border-gray-300 rounded-lg" rows="3"></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">ส่วนผสมที่ใช้ต่อ 1 จาน</label>
+        <div id="menuIngredientsList" class="space-y-2"></div>
+        <p class="text-xs text-gray-500 mt-1">กำหนดปริมาณวัตถุดิบที่จะใช้ต่อหนึ่งจาน เพื่อให้ระบบตัดสต็อกอัตโนมัติ</p>
+      </div>
+      <div class="flex space-x-4">
+        <button type="button" onclick="closeEditMenuModal()" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg">ยกเลิก</button>
+        <button type="submit" class="flex-1 btn-primary text-white py-2 rounded-lg">บันทึก</button>
+      </div>
+    </form>
+  </div>
+  
+</div>
+
+<!-- Set (Combo) Modal -->
+<div id="setModal" class="fixed inset-0 bg-black bg-opacity-50 modal flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-2xl p-6 max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto relative">
+    <button onclick="closeSetModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+    <h2 class="text-2xl font-bold text-gray-800 mb-4" id="setModalTitle">สร้างเซ็ตอาหาร</h2>
+    <input type="hidden" id="setId" />
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อเซ็ต</label>
+        <input type="text" id="setName" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="เช่น เซ็ตอิ่มคุ้ม" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">รูปภาพ (URL)</label>
+        <input type="url" id="setImageUrl" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="https://..." />
+      </div>
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="block text-sm font-medium text-gray-700">รายการในเซ็ต</label>
+          <button onclick="addSetItemRow()" class="text-sm bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded">เพิ่มรายการ</button>
+        </div>
+        <div id="setItems" class="space-y-2"></div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">ส่วนลดเซ็ต</label>
+          <div class="flex items-center space-x-2">
+            <select id="setDiscountType" class="px-2 py-2 border rounded">
+              <option value="none">ไม่มี</option>
+              <option value="percent">เปอร์เซ็นต์ (%)</option>
+              <option value="fixed">จำนวนเงิน (บาท)</option>
+            </select>
+            <input type="number" id="setDiscountValue" class="flex-1 px-3 py-2 border rounded" placeholder="ค่า" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">ราคารวมโดยประมาณ</label>
+          <div class="px-4 py-2 bg-gray-50 rounded border"><span id="setPricePreview">0</span> บาท</div>
+        </div>
+      </div>
+      <div class="flex space-x-3 pt-2">
+        <button onclick="closeSetModal()" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg">ยกเลิก</button>
+        <button onclick="saveSet()" class="flex-1 btn-primary text-white py-2 rounded-lg">บันทึกเซ็ต</button>
+      </div>
+    </div>
+  </div>
+  </div>
+{% endblock %}

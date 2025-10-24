@@ -1,0 +1,105 @@
+{% load static %}
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ page_title|default:"ระบบจัดการร้านอาหาร" }}</title>
+    <script src="/_sdk/data_sdk.js"></script>
+    <script src="/_sdk/element_sdk.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <style>
+      body { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+      .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+      .food-card { transition: all 0.3s ease; border-radius: 15px; overflow: hidden; }
+      .food-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+      .btn-primary { background: linear-gradient(45deg, #ff6b6b, #ee5a24); transition: all 0.3s ease; }
+      .btn-primary:hover { background: linear-gradient(45deg, #ee5a24, #ff6b6b); transform: translateY(-2px); }
+      .modal { backdrop-filter: blur(10px); }
+      .notification { position: fixed; top: 20px; right: 20px; z-index: 1000; padding: 15px 20px; border-radius: 10px; color: white; font-weight: 500; transform: translateX(400px); transition: transform 0.3s ease; }
+      .notification.show { transform: translateX(0); }
+      .notification.success { background: linear-gradient(45deg, #00b894, #00cec9); }
+      .notification.error { background: linear-gradient(45deg, #e17055, #d63031); }
+      .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; }
+      @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+      .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+      .status-pending { background: #ffeaa7; color: #2d3436; }
+      .status-preparing { background: #74b9ff; color: #fff; }
+      .status-ready { background: #00b894; color: #fff; }
+      .status-delivering { background: #fdcb6e; color: #2d3436; }
+      .status-completed { background: #6c5ce7; color: #fff; }
+      .dashboard-card { background: #fff; border-radius: 15px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+      .dashboard-card:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(0,0,0,0.15); }
+      /* Prevent background scroll when modal is open */
+      body.modal-open { overflow: hidden; }
+    </style>
+    <style>@view-transition { navigation: auto; }</style>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block extra_head %}{% endblock %}
+  </head>
+  <body class="bg-gray-50">
+    {% block content %}{% endblock %}
+    <!-- Footer -->
+    <footer class="mt-16 border-t bg-white">
+      <div class="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
+        <div>
+          <div class="text-xl font-bold mb-2">🍽️ Delicious</div>
+          <p class="text-gray-600">อร่อยง่าย ๆ ได้ทุกวัน ร้านอาหารของคุณในรูปแบบออนไลน์</p>
+        </div>
+        <div>
+          <div class="font-semibold mb-2">เมนู</div>
+          <ul class="space-y-1 text-gray-600">
+            <li><a href="/customer/" class="hover:text-gray-900">สั่งอาหาร</a></li>
+            <li><a href="#" onclick="showCustomerSection('favorites')" class="hover:text-gray-900">เมนูโปรด</a></li>
+            <li><a href="#" onclick="showCustomerSection('orders')" class="hover:text-gray-900">ออเดอร์ของฉัน</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="font-semibold mb-2">สำหรับธุรกิจ</div>
+          <ul class="space-y-1 text-gray-600">
+            <li><a href="/staff/" class="hover:text-gray-900">พนักงาน</a></li>
+            <li><a href="/chef/" class="hover:text-gray-900">เชฟ</a></li>
+            <li><a href="/rider/" class="hover:text-gray-900">ไรเดอร์</a></li>
+            <li><a href="/admin/" class="hover:text-gray-900">แอดมิน</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="font-semibold mb-2">ติดต่อเรา</div>
+          <ul class="space-y-1 text-gray-600">
+            <li><i class="fa-solid fa-phone mr-2"></i>02-123-4567</li>
+            <li><i class="fa-solid fa-location-dot mr-2"></i>กรุงเทพฯ</li>
+            <li><i class="fa-solid fa-envelope mr-2"></i>contact@example.com</li>
+          </ul>
+        </div>
+      </div>
+      <div class="text-center text-xs text-gray-500 pb-6">© 2025 Delicious Restaurant. All rights reserved.</div>
+    </footer>
+    <script>
+      // Set initial role provided by the Django view (if any)
+      {% if initial_role %}
+      window.initialRole = '{{ initial_role }}';
+      {% else %}
+      window.initialRole = null;
+      {% endif %}
+      // Provide current user info to frontend if authenticated
+      {% if request.user.is_authenticated %}
+      window.currentUser = {
+        username: '{{ request.user.username|escapejs }}',
+        name: '{{ request.user.get_full_name|default:request.user.username|escapejs }}',
+        email: '{{ request.user.email|escapejs }}',
+        role: '{{ request.user.profile.role|default:"customer" }}'
+      };
+      {% else %}
+      window.currentUser = null;
+      {% endif %}
+    </script>
+  <script src="{% static 'restaurant/app.js' %}"></script>
+  <!-- Customer module: after app.js so it can use globals; before staff.js is fine -->
+  <script src="{% static 'restaurant/js/customer.js' %}"></script>
+  <!-- Staff module: must load after app.js to access global state -->
+  <script src="{% static 'restaurant/js/staff.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

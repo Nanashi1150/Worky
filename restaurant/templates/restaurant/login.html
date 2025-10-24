@@ -1,0 +1,222 @@
+{% load static %}
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ page_title|default:"เข้าสู่ระบบ" }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <style>body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }</style>
+  </head>
+  <body class="min-h-screen bg-gray-50 flex items-center justify-center p-4 md:p-8">
+  <div class="w-full max-w-2xl bg-white rounded-2xl shadow p-4 sm:p-6 md:p-8">
+      <div class="text-center mb-6">
+        <div class="text-3xl font-bold">🍽️ Delicious</div>
+        <div class="text-gray-600">เข้าสู่ระบบ / สมัครสมาชิก</div>
+      </div>
+
+      <div class="mb-6">
+        <div class="flex bg-gray-100 rounded-lg p-1 w-full">
+          <button id="loginTab" class="flex-1 py-2 px-4 rounded-md bg-white shadow-sm text-sm font-medium">เข้าสู่ระบบ</button>
+          <button id="registerTab" class="flex-1 py-2 px-4 rounded-md text-gray-500 text-sm font-medium">สมัครสมาชิก</button>
+        </div>
+      </div>
+
+      <div>
+        <!-- Login Form (ตามดีไซน์ใหม่) -->
+        <form id="loginForm" class="space-y-4" method="post" action="/login/">
+          {% csrf_token %}
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">ประเภทบัญชี</label>
+            <select id="loginRole" name="loginRole" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="customer">ลูกค้า</option>
+              <option value="staff">พนักงาน</option>
+              <option value="chef">เชฟ</option>
+              <option value="rider">ไรเดอร์</option>
+              <option value="admin">แอดมิน</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">บัญชีผู้ใช้</label>
+            <input type="text" id="loginEmail" name="loginEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="อีเมลหรือเบอร์โทร" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">รหัสผ่าน</label>
+            <input type="password" id="loginPassword" name="loginPassword" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="รหัสผ่าน" />
+          </div>
+          <div class="flex items-center justify-between">
+            <a href="#" class="text-sm text-blue-600 hover:underline">ลืมรหัสผ่าน?</a>
+          </div>
+          <!-- Inline error message -->
+          <p id="loginError" class="text-sm text-red-600 hidden"></p>
+          {% if login_error %}
+          <p class="text-sm text-red-600">{{ login_error }}</p>
+          {% endif %}
+          <!-- Primary login button: gradient ตามภาพตัวอย่าง -->
+          <button type="submit" class="w-full py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600">เข้าสู่ระบบ</button>
+
+          <!-- Sign in with providers -->
+          <div class="pt-2">
+            <div class="text-sm text-gray-500 mb-2">เข้าสู่ระบบด้วยบัญชีอื่น</div>
+            <div class="grid grid-cols-4 gap-3">
+              <button type="button" class="border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"><i class="fa-brands fa-google text-lg"></i></button>
+              <button type="button" class="border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"><i class="fa-brands fa-facebook text-lg"></i></button>
+              <button type="button" class="border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"><i class="fa-brands fa-line text-lg"></i></button>
+              <button type="button" class="border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"><i class="fa-brands fa-apple text-lg"></i></button>
+            </div>
+          </div>
+
+          <!-- Auto-login checkbox -->
+          <div class="pt-2">
+            <label class="inline-flex items-start gap-2 text-sm text-gray-700">
+              <input type="checkbox" id="autoLogin" class="mt-1" />
+              <span>ล็อกอินอัตโนมัติ (ใช้เฉพาะอุปกรณ์ส่วนตัว)</span>
+            </label>
+          </div>
+
+          <!-- Demo accounts section -->
+          <div class="pt-3">
+            <div class="text-sm font-semibold text-gray-700 mb-2">บัญชีทดสอบ (Demo)</div>
+            <div class="bg-gray-100 rounded-xl p-3">
+              <div class="grid grid-cols-2 gap-2 mb-2">
+                <button type="button" onclick="gotoRole('customer')" class="p-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100">👤 ลูกค้า</button>
+                <button type="button" onclick="gotoRole('staff')" class="p-2 rounded-lg bg-green-50 text-green-700 hover:bg-green-100">🧑‍💼 พนักงาน</button>
+                <button type="button" onclick="gotoRole('chef')" class="p-2 rounded-lg bg-orange-50 text-orange-700 hover:bg-orange-100">👨‍🍳 เชฟ</button>
+                <button type="button" onclick="gotoRole('rider')" class="p-2 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100">🏍️ ไรเดอร์</button>
+              </div>
+              <button type="button" onclick="gotoRole('admin')" class="w-full p-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100">👑 แอดมิน</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Register Form -->
+        <form id="registerForm" class="space-y-4 hidden" method="post" action="/auth/register/">
+          {% csrf_token %}
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อผู้ใช้ (Username)</label>
+            <input type="text" id="registerUsername" name="registerUsername" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="ชื่อผู้ใช้สำหรับแสดงผล" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อ</label>
+              <input type="text" id="registerFirstName" name="registerFirstName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="ชื่อ" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">นามสกุล</label>
+              <input type="text" id="registerLastName" name="registerLastName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="นามสกุล" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">อีเมล</label>
+            <input type="email" id="registerEmail" name="registerEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus-border-transparent" placeholder="example@email.com" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">เบอร์โทร</label>
+            <input type="tel" id="registerPhone" name="registerPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="08xxxxxxxx" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">รหัสผ่าน</label>
+            <input type="password" id="registerPassword" name="registerPassword" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">ยืนยันรหัสผ่าน</label>
+            <input type="password" id="registerConfirmPassword" name="registerConfirmPassword" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="ยืนยันรหัสผ่าน" />
+          </div>
+          {% if register_error %}
+          <p class="text-sm text-red-600">{{ register_error }}</p>
+          {% endif %}
+          <button type="submit" class="w-full py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600">สมัครสมาชิก</button>
+        </form>
+      </div>
+
+      <div class="mt-6 text-center text-sm text-gray-500">© 2025 Delicious Restaurant</div>
+    </div>
+
+    <script>
+      function switchAuthTab(tab) {
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        if (tab === 'login') {
+          loginForm.classList.remove('hidden');
+          registerForm.classList.add('hidden');
+          loginTab.classList.add('bg-white');
+          loginTab.classList.remove('text-gray-500');
+          registerTab.classList.remove('bg-white');
+          registerTab.classList.add('text-gray-500');
+        } else {
+          registerForm.classList.remove('hidden');
+          loginForm.classList.add('hidden');
+          registerTab.classList.add('bg-white');
+          registerTab.classList.remove('text-gray-500');
+          loginTab.classList.remove('bg-white');
+          loginTab.classList.add('text-gray-500');
+        }
+      }
+
+      function gotoRole(role) {
+        // Quick-login as demo user for this role
+        window.location.href = '/login/demo/' + role + '/';
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        // Preselect role when coming from /login/<role>/
+        try {
+          const pre = '{{ preselect_role|default:"" }}';
+          if (pre) {
+            const sel = document.getElementById('loginRole');
+            if (sel) sel.value = pre;
+          }
+        } catch (e) {}
+        document.getElementById('loginTab').addEventListener('click', function(){ switchAuthTab('login'); });
+        document.getElementById('registerTab').addEventListener('click', function(){ switchAuthTab('register'); });
+        // Default to login tab
+        switchAuthTab('login');
+        // Client-side validation; let the form POST to server upon success
+        const loginForm = document.getElementById('loginForm');
+        loginForm.addEventListener('submit', function(e){
+          const role = (document.getElementById('loginRole')||{}).value || 'customer';
+          const emailEl = document.getElementById('loginEmail');
+          const passEl = document.getElementById('loginPassword');
+          const errorEl = document.getElementById('loginError');
+          const email = (emailEl?.value || '').trim();
+          const pass = (passEl?.value || '').trim();
+
+          // reset styles
+          [emailEl, passEl].forEach(el => { if (el) { el.classList.remove('border-red-500'); el.classList.add('border-gray-300'); }});
+          if (errorEl) { errorEl.textContent = ''; errorEl.classList.add('hidden'); }
+
+          // Basic validation: require both fields; simple email/phone rule; min password length
+          const isPhone = /^\d{8,15}$/.test(email);
+          const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+          if (!email || !pass) {
+            if (errorEl) { errorEl.textContent = 'กรุณากรอกบัญชีผู้ใช้และรหัสผ่าน'; errorEl.classList.remove('hidden'); }
+            if (!email && emailEl) emailEl.classList.add('border-red-500');
+            if (!pass && passEl) passEl.classList.add('border-red-500');
+            (email ? passEl : emailEl)?.focus();
+            e.preventDefault();
+            return;
+          }
+          if (!(isEmail || isPhone)) {
+            if (errorEl) { errorEl.textContent = 'รูปแบบบัญชีผู้ใช้ไม่ถูกต้อง (ใส่อีเมลหรือเบอร์โทร)'; errorEl.classList.remove('hidden'); }
+            if (emailEl) emailEl.classList.add('border-red-500');
+            emailEl?.focus();
+            e.preventDefault();
+            return;
+          }
+          if (pass.length < 6) {
+            if (errorEl) { errorEl.textContent = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'; errorEl.classList.remove('hidden'); }
+            if (passEl) passEl.classList.add('border-red-500');
+            passEl?.focus();
+            e.preventDefault();
+            return;
+          }
+          // If valid, allow normal form submission to backend
+        });
+        // Registration will post to backend; optional client validation can be added later
+      });
+    </script>
+  </body>
+</html>
